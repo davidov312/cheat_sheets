@@ -11,15 +11,16 @@
 #  imports
 import pandas as pd, numpy as np
 from multiprocessing import get_context, cpu_count, Pool
+from typing import Callable
 
 # util functions
-def my_square(df):
+def my_square(df: pd.DataFrame) -> pd.DataFrame: 
     df_out = df.copy()
     df_out['square'] = df_out.my_val.pow(2)
     return df_out
 
 
-def apply_my_func_group_by_single_core(df_groupby, func):
+def apply_my_func_group_by_single_core(df_groupby, func: Callable) -> pd.DataFrame: 
     result_list = []
     for _, group_df in df_groupby:
         print(type(group_df))
@@ -28,7 +29,7 @@ def apply_my_func_group_by_single_core(df_groupby, func):
     return result_df
 
 
-def apply_my_func_group_by_async(df_groupby, func):
+def apply_my_func_group_by_async(df_groupby, func: Callable) -> pd.DataFrame: 
     pool = get_context().Pool(processes=cpu_count())
     result_async = [pool.apply_async(func, args=(group_df,))
                 for _, group_df in df_groupby]
@@ -40,7 +41,7 @@ def apply_my_func_group_by_async(df_groupby, func):
     result_df = pd.concat(result_list, axis=0, ignore_index=True, sort=False)  
     return(result_df)
 
-def apply_my_func_sync(df, func):
+def apply_my_func_sync(df: pd.DataFrame, func: Callable) -> pd.DataFrame:
     df_split = np.array_split(df, cpu_count())
     pool = Pool(cpu_count())
     df = pd.concat(pool.map(func, df_split))
